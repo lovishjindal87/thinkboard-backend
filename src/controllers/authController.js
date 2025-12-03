@@ -94,7 +94,7 @@ export async function googleOAuthCallback(req, res) {
       .cookie("token", token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
         maxAge: 7 * 24 * 60 * 60 * 1000,
       })
       .redirect(FRONTEND_URL);
@@ -127,7 +127,7 @@ export function logout(req, res) {
     .clearCookie("token", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     })
     .status(200)
     .json({ message: "Logged out" });
