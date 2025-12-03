@@ -96,8 +96,9 @@ export async function googleOAuthCallback(req, res) {
         secure: process.env.NODE_ENV === "production",
         sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
         maxAge: 7 * 24 * 60 * 60 * 1000,
+        path: "/",
       })
-      .redirect(FRONTEND_URL);
+      .redirect(`${FRONTEND_URL}?auth=success`);
   } catch (error) {
     console.error("Error in googleOAuthCallback:", error.response?.data || error);
     return res.redirect(`${FRONTEND_URL}/auth/error`);
