@@ -4,15 +4,7 @@ export function requireAuth(req, res, next) {
   try {
     const token = req.cookies?.token;
     
-    // Debug logging
-    console.log("Auth check - Cookies received:", {
-      hasToken: !!token,
-      cookieHeader: req.headers.cookie,
-      allCookies: req.cookies,
-    });
-    
     if (!token) {
-      console.log("No token found in cookies");
       return res.status(401).json({ message: "Not authenticated" });
     }
 

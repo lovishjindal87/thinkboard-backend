@@ -29,11 +29,9 @@ if(!isProduction){
   corsOptions.origin = "http://localhost:5173";
 } else if(process.env.FRONTEND_URL){
   corsOptions.origin = process.env.FRONTEND_URL;
-  console.log("CORS configured for:", process.env.FRONTEND_URL);
 } else {
   // In production, if FRONTEND_URL is not set, allow all origins (not ideal but works)
   corsOptions.origin = true;
-  console.log("WARNING: FRONTEND_URL not set, allowing all origins");
 }
 
 app.use(cors(corsOptions));

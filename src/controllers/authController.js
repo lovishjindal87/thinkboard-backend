@@ -15,10 +15,6 @@ const CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 const REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI;
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
 
-// Validate redirect URI in production
-if (process.env.NODE_ENV === "production" && REDIRECT_URI && !REDIRECT_URI.startsWith("https://")) {
-  console.error("ERROR: GOOGLE_REDIRECT_URI must start with https:// in production");
-}
 
 function createToken(userId) {
   return jwt.sign({ id: userId }, process.env.JWT_SECRET, {
@@ -40,11 +36,6 @@ export function googleOAuthStart(req, res) {
     access_type: "offline",
     prompt: "consent",
   });
-
-  // Log redirect URI for debugging (remove in production if sensitive)
-  if (process.env.NODE_ENV !== "production") {
-    console.log("OAuth redirect URI:", REDIRECT_URI);
-  }
 
   res.redirect(`${GOOGLE_OAUTH_URL}?${params.toString()}`);
 }
@@ -80,8 +71,6 @@ export async function googleOAuthCallback(req, res) {
         Authorization: `Bearer ${access_token}`,
       },
     });
-    
-   // console.log("Google profile:", profileRes.data);
 
     const { sub, name, email, picture } = profileRes.data;
 
@@ -105,13 +94,6 @@ export async function googleOAuthCallback(req, res) {
 
     // Determine if we're in production (Vercel sets VERCEL=1)
     const isProduction = process.env.VERCEL === "1" || process.env.NODE_ENV === "production";
-
-    console.log("Setting cookie with settings:", {
-      secure: isProduction,
-      sameSite: isProduction ? "none" : "lax",
-      httpOnly: true,
-      path: "/",
-    });
 
     res
       .cookie("token", token, {
