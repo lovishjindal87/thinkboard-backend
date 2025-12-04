@@ -15,15 +15,28 @@ const app = express();
 const PORT = process.env.PORT || 5001;
 const __dirname = path.resolve();
 
-// Helper to determine production environment
 const isProduction = () => process.env.VERCEL === "1" || process.env.NODE_ENV === "production";
 
 // CORS Configuration
+const getCorsOrigin = () => {
+  if (!isProduction()) {
+    return "http://localhost:5173";
+  }
+  
+
+  const frontendUrl = process.env.FRONTEND_URL;
+  if (frontendUrl) {
+
+    const origins = frontendUrl.split(',').map(url => url.trim());
+    return origins.length === 1 ? origins[0] : origins;
+  }
+  
+  return true;
+};
+
 const corsOptions = {
   credentials: true,
-  origin: !isProduction() 
-    ? "http://localhost:5173"
-    : process.env.FRONTEND_URL || true,
+  origin: getCorsOrigin(),
 };
 
 app.use(cors(corsOptions));
