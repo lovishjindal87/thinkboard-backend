@@ -15,6 +15,8 @@ const CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 const REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI;
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
 
+// Helper to determine production environment
+const isProduction = () => process.env.VERCEL === "1" || process.env.NODE_ENV === "production";
 
 function createToken(userId) {
   return jwt.sign({ id: userId }, process.env.JWT_SECRET, {
@@ -91,15 +93,13 @@ export async function googleOAuthCallback(req, res) {
     }
 
     const token = createToken(user._id.toString());
-
-    // Determine if we're in production (Vercel sets VERCEL=1)
-    const isProduction = process.env.VERCEL === "1" || process.env.NODE_ENV === "production";
+    const prod = isProduction();
 
     res
       .cookie("token", token, {
         httpOnly: true,
-        secure: isProduction, // Must be true for sameSite: 'none'
-        sameSite: isProduction ? "none" : "lax",
+        secure: prod,
+        sameSite: prod ? "none" : "lax",
         maxAge: 7 * 24 * 60 * 60 * 1000,
         path: "/",
       })
@@ -129,13 +129,13 @@ export async function getCurrentUser(req, res) {
 }
 
 export function logout(req, res) {
-  const isProduction = process.env.VERCEL === "1" || process.env.NODE_ENV === "production";
+  const prod = isProduction();
   
   res
     .clearCookie("token", {
       httpOnly: true,
-      secure: isProduction,
-      sameSite: isProduction ? "none" : "lax",
+      secure: prod,
+      sameSite: prod ? "none" : "lax",
       path: "/",
     })
     .status(200)

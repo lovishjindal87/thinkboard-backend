@@ -15,24 +15,16 @@ const app = express();
 const PORT = process.env.PORT || 5001;
 const __dirname = path.resolve();
 
-//middleware
+// Helper to determine production environment
+const isProduction = () => process.env.VERCEL === "1" || process.env.NODE_ENV === "production";
 
 // CORS Configuration
 const corsOptions = {
   credentials: true,
+  origin: !isProduction() 
+    ? "http://localhost:5173"
+    : process.env.FRONTEND_URL || true,
 };
-
-// Check if we're in production (Vercel sets VERCEL=1)
-const isProduction = process.env.VERCEL === "1" || process.env.NODE_ENV === "production";
-
-if(!isProduction){
-  corsOptions.origin = "http://localhost:5173";
-} else if(process.env.FRONTEND_URL){
-  corsOptions.origin = process.env.FRONTEND_URL;
-} else {
-  // In production, if FRONTEND_URL is not set, allow all origins (not ideal but works)
-  corsOptions.origin = true;
-}
 
 app.use(cors(corsOptions));
 app.use(express.json());
@@ -53,16 +45,15 @@ app.get("/", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/notes", notesRoutes);
 
-if(process.env.NODE_ENV === "production"){
+if(isProduction()){
   app.use(express.static(path.join(__dirname, "../frontend/dist")));
-
   app.get("*", (req, res) => {
     res.sendFile(path.join(__dirname, "../frontend", "dist", "index.html"));
   });
 }
 
 // Connect to database and start server (for local development)
-if(process.env.NODE_ENV !== "production"){
+if(!isProduction()){
   connectDB().then(() =>{
     app.listen(PORT, ()=> {
       console.log("Server listening on PORT:", PORT);
