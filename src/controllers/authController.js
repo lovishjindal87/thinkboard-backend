@@ -15,6 +15,11 @@ const CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 const REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI;
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
 
+// Validate redirect URI in production
+if (process.env.NODE_ENV === "production" && REDIRECT_URI && !REDIRECT_URI.startsWith("https://")) {
+  console.error("ERROR: GOOGLE_REDIRECT_URI must start with https:// in production");
+}
+
 function createToken(userId) {
   return jwt.sign({ id: userId }, process.env.JWT_SECRET, {
     expiresIn: "7d",
@@ -22,6 +27,11 @@ function createToken(userId) {
 }
 
 export function googleOAuthStart(req, res) {
+  if (!REDIRECT_URI) {
+    console.error("ERROR: GOOGLE_REDIRECT_URI environment variable is not set");
+    return res.status(500).json({ error: "OAuth configuration error" });
+  }
+
   const params = new URLSearchParams({
     client_id: CLIENT_ID,
     redirect_uri: REDIRECT_URI,
@@ -31,7 +41,10 @@ export function googleOAuthStart(req, res) {
     prompt: "consent",
   });
 
-  // console.log("Google OAuth URL:", `${GOOGLE_OAUTH_URL}?${params.toString()}`); fixed
+  // Log redirect URI for debugging (remove in production if sensitive)
+  if (process.env.NODE_ENV !== "production") {
+    console.log("OAuth redirect URI:", REDIRECT_URI);
+  }
 
   res.redirect(`${GOOGLE_OAUTH_URL}?${params.toString()}`);
 }
