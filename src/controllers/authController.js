@@ -103,11 +103,21 @@ export async function googleOAuthCallback(req, res) {
 
     const token = createToken(user._id.toString());
 
+    // Determine if we're in production (Vercel sets VERCEL=1)
+    const isProduction = process.env.VERCEL === "1" || process.env.NODE_ENV === "production";
+
+    console.log("Setting cookie with settings:", {
+      secure: isProduction,
+      sameSite: isProduction ? "none" : "lax",
+      httpOnly: true,
+      path: "/",
+    });
+
     res
       .cookie("token", token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+        secure: isProduction, // Must be true for sameSite: 'none'
+        sameSite: isProduction ? "none" : "lax",
         maxAge: 7 * 24 * 60 * 60 * 1000,
         path: "/",
       })
@@ -137,11 +147,14 @@ export async function getCurrentUser(req, res) {
 }
 
 export function logout(req, res) {
+  const isProduction = process.env.VERCEL === "1" || process.env.NODE_ENV === "production";
+  
   res
     .clearCookie("token", {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      secure: isProduction,
+      sameSite: isProduction ? "none" : "lax",
+      path: "/",
     })
     .status(200)
     .json({ message: "Logged out" });
